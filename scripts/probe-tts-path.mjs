@@ -1,0 +1,28 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader','--autoplay-policy=no-user-gesture-required'] });
+const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'load' });
+await page.waitForFunction(() => window.__dialogue, { timeout: 20000 });
+await page.waitForTimeout(1500);
+const out = await page.evaluate(async () => {
+  const v = window.__dialogue.voice;
+  const ctx = v.unlock();
+  const text = '这是一段全新的句子，用来测量合成链路各阶段耗时。';
+  const res = {};
+  let t = performance.now();
+  const r = await fetch('/api/tts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) });
+  const meta = await r.json();
+  res.postJson = Math.round(performance.now() - t);
+  t = performance.now();
+  const ab = await (await fetch(meta.url)).arrayBuffer();
+  res.fetchWav = Math.round(performance.now() - t);
+  res.bytes = ab.byteLength;
+  t = performance.now();
+  const buf = await ctx.decodeAudioData(ab);
+  res.decode = Math.round(performance.now() - t);
+  res.duration = +buf.duration.toFixed(2);
+  res.ctxState = ctx.state;
+  return res;
+});
+console.log(JSON.stringify(out));
+await browser.close();

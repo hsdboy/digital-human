@@ -1,0 +1,31 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 820, height: 720 } });
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'load' });
+await page.waitForFunction(() => window.__rig && window.__three, { timeout: 20000 });
+await page.waitForTimeout(1500);
+const info = await page.evaluate(() => {
+  const { controls, THREE } = window.__three;
+  controls.target.set(0, -0.22, 0.12);
+  controls.object.position.set(0, -0.2, 0.72);
+  controls.update();
+  document.querySelector('.chat').style.display = 'none';
+  document.querySelector('.hud').style.display = 'none';
+  document.querySelector('.panel').style.display = 'none';
+  window.dispatchEvent(new Event('resize'));
+  window.__mixer.manual.set('jawOpen', 0.55);
+  // 找出牙齿网格
+  let teeth = null;
+  window.__rig.root.traverse((o) => { if (o.name === 'teeth' || (o.parent && o.parent.name === 'teeth')) teeth = o; });
+  const bb = new THREE.Box3().setFromObject(teeth);
+  const c = bb.getCenter(new THREE.Vector3());
+  const s = bb.getSize(new THREE.Vector3());
+  return { found: !!teeth, name: teeth?.name || teeth?.parent?.name, center: c.toArray().map(n=>+n.toFixed(3)), size: s.toArray().map(n=>+n.toFixed(3)) };
+});
+console.log('teeth:', JSON.stringify(info));
+await page.waitForTimeout(400);
+await page.screenshot({ path: '/tmp/t-with.png' });
+await page.evaluate(() => { window.__rig.root.traverse((o) => { if (o.name === 'teeth' || (o.parent && o.parent.name === 'teeth')) o.visible = false; }); });
+await page.waitForTimeout(300);
+await page.screenshot({ path: '/tmp/t-without.png' });
+await browser.close();

@@ -1,0 +1,40 @@
+{
+  "name": "face-p0",
+  "version": "1.0.0",
+  "description": "3D 表情数字人：ARKit 52 通道 + 内联标签表情 + TTS 音频时钟驱动",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:native": "swiftc -O native/ttsd.swift -o native/ttsd && swiftc -O native/tts.swift -o native/tts",
+    "start": "node server.mjs",
+    "dev": "node build.mjs && node server.mjs",
+    "analyze": "node scripts/analyze.mjs ./assets/facecap.glb",
+    "test": "node scripts/test-pipeline.mjs",
+    "test:sem": "node scripts/test-semantics.mjs",
+    "test:viseme": "node scripts/test-viseme.mjs",
+    "test:ollama": "node scripts/test-ollama.mjs",
+    "test:sound": "node scripts/test-sound.mjs",
+    "shot:sound": "node scripts/shot-sound.mjs",
+    "shot:live": "node scripts/shot-live.mjs",
+    "shot:viseme": "node scripts/shot-viseme.mjs",
+    "test:sem:live": "node scripts/test-semantic-live.mjs",
+    "test:audio": "node scripts/test-audio.mjs",
+    "test:barge": "node scripts/test-barge.mjs",
+    "fake-llm": "node scripts/fake-llm.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "esbuild": "^0.28.2",
+    "meshoptimizer": "^1.3.0",
+    "pinyin-pro": "^3.29.5",
+    "pngjs": "^7.0.0",
+    "three": "^0.187.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "playwright": "^1.65.0"
+  }
+}
